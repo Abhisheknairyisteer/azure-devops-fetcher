@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import requests
 from requests.auth import HTTPBasicAuth
 from typing import List, Dict, Any, Optional
@@ -12,10 +12,12 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+# --- HARDCODED PAT HERE (replace with your PAT safely) ---
+HARDCODED_PAT = "9wzrZG5DIocpvuKheOjq4BvmmqkkVzag4rBfR60o8GPzlUHTgoBJJQQJ99BGACAAAAAEkb9vAAASAZDO2hPb"
+
 class FetchBoardsRequest(BaseModel):
     organization: str
     project: str
-    pat: str
     work_item_type: Optional[str] = None
     assigned_to: Optional[str] = None
 
@@ -26,7 +28,7 @@ class FetchBoardsResponse(BaseModel):
 def fetch_azure_boards(payload: FetchBoardsRequest):
     organization = payload.organization
     project = payload.project
-    pat = payload.pat
+    pat = HARDCODED_PAT  # use the hardcoded PAT here
     work_item_type = payload.work_item_type
     assigned_to = payload.assigned_to
 
@@ -64,7 +66,11 @@ def fetch_azure_boards(payload: FetchBoardsRequest):
         for i in range(0, len(work_item_ids), chunk_size):
             chunk_ids = work_item_ids[i:i + chunk_size]
             ids_str = ",".join(chunk_ids)
-            workitems_url = f"https://dev.azure.com/{organization}/{project}/_apis/wit/workitems?ids={ids_str}&fields=System.Id,System.Title,System.State,System.WorkItemType,System.AssignedTo&api-version=7.1-preview.2"
+            workitems_url = (
+                f"https://dev.azure.com/{organization}/{project}/_apis/wit/workitems"
+                f"?ids={ids_str}&fields=System.Id,System.Title,System.State,System.WorkItemType,System.AssignedTo"
+                f"&api-version=7.1-preview.2"
+            )
 
             workitems_response = requests.get(
                 workitems_url,
@@ -79,17 +85,12 @@ def fetch_azure_boards(payload: FetchBoardsRequest):
         for item in detailed_workitems:
             fields = item.get("fields", {})
             
-            # --- THIS IS THE FIX ---
-            # It now checks if the 'AssignedTo' field is a dictionary or a string.
             assigned_to_field = fields.get("System.AssignedTo")
-            assignee_name = "Unassigned" # Default value
+            assignee_name = "Unassigned"
             if isinstance(assigned_to_field, dict):
-                # If it's a dictionary, get the displayName
                 assignee_name = assigned_to_field.get("displayName", "Unassigned")
             elif isinstance(assigned_to_field, str):
-                # If it's a string, just use the string
                 assignee_name = assigned_to_field
-            # If it's neither (e.g., None), it remains "Unassigned"
 
             simplified_results.append({
                 "ID": item.get("id"),
