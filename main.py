@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 # --- HARDCODED PAT HERE (replace with your PAT safely) ---
-HARDCODED_PAT = "9wzrZG5DIocpvuKheOjq4BvmmqkkVzag4rBfR60o8GPzlUHTgoBJJQQJ99BGACAAAAAEkb9vAAASAZDO2hPb"
+# HARDCODED_PAT = "9wzrZG5DIocpvuKheOjq4BvmmqkkVzag4rBfR60o8GPzlUHTgoBJJQQJ99BGACAAAAAEkb9vAAASAZDO2hPb"
 
 class FetchBoardsRequest(BaseModel):
     organization: str
@@ -28,7 +28,7 @@ class FetchBoardsResponse(BaseModel):
 def fetch_azure_boards(payload: FetchBoardsRequest):
     organization = payload.organization
     project = payload.project
-    pat = HARDCODED_PAT  # use the hardcoded PAT here
+    pat = "6RlrfYwfWV6awx5VtdXArfxahwaPNbyTprMLxUp0X3MGEcxrumJRJQQJ99BGACAAAAAEkb9vAAASAZDO2OYy"  # use the hardcoded PAT here
     work_item_type = payload.work_item_type
     assigned_to = payload.assigned_to
 
